@@ -1,0 +1,45 @@
+CREATE VIEW users_view AS
+WITH users_tweets AS
+(
+    SELECT 
+	u.id as 'user_id',
+    	u.full_name,
+        u.username,
+        u.password,
+        u.profile_image_path,
+        u.created_at as 'user_created_at',
+    	CASE
+            WHEN t.id is null THEN 0
+            ELSE COUNT(t.id)
+        END as 'user_tweets_count'
+	FROM users u
+	LEFT JOIN tweets t
+	ON u.id = t.author_id
+	GROUP BY u.id
+),
+users_comments AS
+(
+	SELECT 
+		u.id as 'user_id',
+        	CASE
+       	    		WHEN c.id is null THEN 0
+            		ELSE COUNT(u.id)
+        	END as 'user_comments_count'
+	FROM users u
+	LEFT JOIN comments c
+	ON u.id = c.author_id
+	GROUP BY u.id
+)
+
+SELECT 
+		ut.user_id,
+    	ut.full_name,
+        ut.username,
+        ut.password,
+        ut.profile_image_path,
+        ut.user_created_at,
+        ut.user_tweets_count,
+        uc.user_comments_count
+FROM users_tweets ut
+INNER JOIN users_comments uc
+ON ut.user_id = uc.user_id
